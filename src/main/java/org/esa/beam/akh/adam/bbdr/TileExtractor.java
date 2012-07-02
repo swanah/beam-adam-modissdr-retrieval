@@ -62,17 +62,11 @@ public class TileExtractor extends Operator implements Output {
     private int parallelism;
     private ModisTileCoordinates tileCoordinates;
     private Geometry sourceGeometry;
-    @Parameter(defaultValue = "50")
-    private int tsX;
-    @Parameter(defaultValue = "10")
-    private int tsY;
 
     @Override
     public void initialize() throws OperatorException {
         if (sourceProduct.getPreferredTileSize() == null) {
             sourceProduct.setPreferredTileSize(sourceProduct.getSceneRasterWidth(), 45);
-            sourceProduct.setPreferredTileSize(tsX, tsY);
-            System.out.println("adjusting tile size to: " + sourceProduct.getPreferredTileSize());
         }
         parallelism = JAI.getDefaultInstance().getTileScheduler().getParallelism();
         tileCoordinates = ModisTileCoordinates.getInstance();
@@ -93,7 +87,7 @@ public class TileExtractor extends Operator implements Output {
             Callable<TileProduct> callable = new Callable<TileProduct>() {
                 @Override
                 public TileProduct call() throws Exception {
-                    Product reprojected = getReprojectedProductWithData(sourceProduct, sourceGeometry, tileName, tsX, tsY);
+                    Product reprojected = getReprojectedProductWithData(sourceProduct, sourceGeometry, tileName);
                     return new TileProduct(reprojected, tileName);
                 }
             };
@@ -118,7 +112,7 @@ public class TileExtractor extends Operator implements Output {
     private void doExtract_simple() {
         for (int index = 0; index < tileCoordinates.getTileCount(); index++) {
             String tileName = tileCoordinates.getTileName(index);
-            Product reproject = getReprojectedProductWithData(sourceProduct, sourceGeometry, tileName, tsX, tsY);
+            Product reproject = getReprojectedProductWithData(sourceProduct, sourceGeometry, tileName);
             if (reproject != null) {
                 writeTileProduct(reproject, tileName);
             }
@@ -139,14 +133,13 @@ public class TileExtractor extends Operator implements Output {
         System.out.println("writing tile " + tileName + " done in " + min + ":" + sec);
     }
 
-    private static Product getReprojectedProductWithData(Product src, Geometry sourceGeometry, String tileName, int tsx, int tsy) {
+    private static Product getReprojectedProductWithData(Product src, Geometry sourceGeometry, String tileName) {
         Product reproject = reproject(src, tileName);
         Geometry reprojectGeometry = computeProductGeometry(reproject);
 
         if (reprojectGeometry != null && reprojectGeometry.intersects(sourceGeometry)) {
-            //int parallelism = JAI.getDefaultInstance().getTileScheduler().getParallelism();
-            //reproject.setPreferredTileSize(reproject.getSceneRasterWidth(), reproject.getSceneRasterHeight() / parallelism);
-            reproject.setPreferredTileSize(tsx, tsx);
+            int parallelism = JAI.getDefaultInstance().getTileScheduler().getParallelism();
+            reproject.setPreferredTileSize(reproject.getSceneRasterWidth(), reproject.getSceneRasterHeight() / parallelism);
             Band bb_vis = reproject.getBand("MODIS_1");
             if (containsFloatData(bb_vis, bb_vis.getNoDataValue())) {
                 return reproject;
