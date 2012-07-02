@@ -1,0 +1,79 @@
+
+<module>
+    <manifestVersion>1.0.0</manifestVersion>
+    <symbolicName>beam-globalbedo-bbdr-retrieval</symbolicName>
+    <version>1.0-SNAPSHOT</version>
+    <name>ADAM MODIS Simulator</name>
+    <description>
+        Calculates MODIS SDR from MERIS and SPOT-VGT L1 data.
+    </description>
+    <vendor>Swansea University and Brockmann Consult GmbH</vendor>
+    <contactAddress>
+        Max Planck Str.2, 21502 Geesthacht (Germany)
+    </contactAddress>
+    <copyright>(C) 2011 by Brockmann Consult GmbH</copyright>
+    <url>http://envisat.esa.int/beam</url>
+    <licenseUrl>http://www.gnu.org/licenses/gpl.html</licenseUrl>
+
+    <changelog/>
+    
+    
+    <categories>Application,Processor,MERIS,AATSR</categories>
+
+    <dependency>
+        <module>beam-gpf</module>
+    </dependency>
+    <dependency>
+        <module>beam-visat</module>
+        <optional>true</optional>
+    </dependency>
+    <dependency>
+        <module>beam-envisat-reader</module>
+    </dependency>
+    <dependency>
+        <module>beam-globalbedo-aerosol</module>
+    </dependency>
+
+    <extension point="beam-ui:actions">
+        <action>
+            <class>org.esa.beam.visat.actions.ActionGroup</class>
+            <parent>tools</parent>
+            <id>adam</id>
+            <text>ADAM</text>
+        </action>
+        <action>
+            <id>AdamSDROp</id>
+            <class>org.esa.beam.visat.actions.DefaultOperatorAction</class>
+            <parent>adam</parent>
+            <operatorName>adam.n2modis</operatorName>
+            <dialogTitle>N2ModisOp</dialogTitle>
+            <targetProductNameSuffix>_sdr</targetProductNameSuffix>
+            <text>N2Modis</text>
+            <shortDescr>adamN2modis</shortDescr>
+            <parent>tool</parent>
+        </action>
+        <action>
+            <id>AdamL2Op</id>
+            <class>org.esa.beam.visat.actions.DefaultOperatorAction</class>
+            <parent>adam</parent>
+            <operatorName>adam.l2</operatorName>
+            <dialogTitle>Adam L2 Operator</dialogTitle>
+            <targetProductNameSuffix>_L2sdr</targetProductNameSuffix>
+            <text>L2</text>
+            <shortDescr>adamL2</shortDescr>
+            <parent>tool</parent>
+        </action>
+        <action>
+            <id>AdamTileOp</id>
+            <class>org.esa.beam.visat.actions.DefaultOperatorAction</class>
+            <parent>adam</parent>
+            <operatorName>adam.tile</operatorName>
+            <dialogTitle>Adam Tile Operator</dialogTitle>
+            <targetProductNameSuffix>_sdrTile</targetProductNameSuffix>
+            <text>Tile</text>
+            <shortDescr>adamTile</shortDescr>
+            <parent>tool</parent>
+        </action>
+    </extension>
+
+</module>
