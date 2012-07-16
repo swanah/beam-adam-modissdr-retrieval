@@ -29,7 +29,6 @@ import java.awt.image.DataBuffer;
 import java.awt.image.Raster;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.concurrent.*;
 import javax.media.jai.JAI;
 import org.esa.beam.akh.adam.auxdata.ModisTileCoordinates;
@@ -59,6 +58,8 @@ public class TileExtractor extends Operator implements Output {
 
     @Parameter
     private String bbdrDir;
+    @Parameter(defaultValue="false")
+    private boolean binTo10km;
     private int parallelism;
     private ModisTileCoordinates tileCoordinates;
     private Geometry sourceGeometry;
@@ -66,7 +67,7 @@ public class TileExtractor extends Operator implements Output {
     @Override
     public void initialize() throws OperatorException {
         if (sourceProduct.getPreferredTileSize() == null) {
-            sourceProduct.setPreferredTileSize(sourceProduct.getSceneRasterWidth(), 45);
+            sourceProduct.setPreferredTileSize(sourceProduct.getSceneRasterWidth(), 50);
         }
         parallelism = JAI.getDefaultInstance().getTileScheduler().getParallelism();
         tileCoordinates = ModisTileCoordinates.getInstance();
@@ -87,7 +88,7 @@ public class TileExtractor extends Operator implements Output {
             Callable<TileProduct> callable = new Callable<TileProduct>() {
                 @Override
                 public TileProduct call() throws Exception {
-                    Product reprojected = getReprojectedProductWithData(sourceProduct, sourceGeometry, tileName);
+                    Product reprojected = getReprojectedProductWithData(sourceProduct, sourceGeometry, tileName, binTo10km);
                     return new TileProduct(reprojected, tileName);
                 }
             };
@@ -112,7 +113,7 @@ public class TileExtractor extends Operator implements Output {
     private void doExtract_simple() {
         for (int index = 0; index < tileCoordinates.getTileCount(); index++) {
             String tileName = tileCoordinates.getTileName(index);
-            Product reproject = getReprojectedProductWithData(sourceProduct, sourceGeometry, tileName);
+            Product reproject = getReprojectedProductWithData(sourceProduct, sourceGeometry, tileName, binTo10km);
             if (reproject != null) {
                 writeTileProduct(reproject, tileName);
             }
@@ -133,7 +134,7 @@ public class TileExtractor extends Operator implements Output {
         System.out.println("writing tile " + tileName + " done in " + min + ":" + sec);
     }
 
-    private static Product getReprojectedProductWithData(Product src, Geometry sourceGeometry, String tileName) {
+    private static Product getReprojectedProductWithData(Product src, Geometry sourceGeometry, String tileName, Boolean doBinning) {
         Product reproject = reproject(src, tileName);
         Geometry reprojectGeometry = computeProductGeometry(reproject);
 
@@ -142,7 +143,12 @@ public class TileExtractor extends Operator implements Output {
             reproject.setPreferredTileSize(reproject.getSceneRasterWidth(), reproject.getSceneRasterHeight() / parallelism);
             Band bb_vis = reproject.getBand("MODIS_1");
             if (containsFloatData(bb_vis, bb_vis.getNoDataValue())) {
-                return reproject;
+                if (doBinning){
+                    AdamBinOperator binOp = new AdamBinOperator();
+                    binOp.setSourceProduct(reproject);
+                    return binOp.getTargetProduct();
+                }
+                else return reproject;
             }
         }
         return null;

@@ -3,6 +3,7 @@ org.esa.beam.akh.adam.bbdr.N2ModisOp$Spi
 org.esa.beam.akh.adam.bbdr.AdamLevel2$Spi
 org.esa.beam.akh.adam.bbdr.LandcoverLevel2$Spi
 org.esa.beam.akh.adam.bbdr.TileExtractor$Spi
+org.esa.beam.akh.adam.bbdr.AdamBinOperator$Spi
 org.esa.beam.akh.adam.landcover.UclCloudOperator$Spi
 org.esa.beam.akh.adam.landcover.LcUclCloudBuffer$Spi
 org.esa.beam.akh.adam.landcover.PixelGeoCodingAnalyzerOperator$Spi
